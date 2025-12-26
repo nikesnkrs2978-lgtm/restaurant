@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model Table {
+  id        String   @id @default(uuid())
+  label     String   // e.g., "Table 1", "Patio 2"
+  qrCode    String   @unique // The string encoded in the QR code
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  needsAssistance Boolean  @default(false)
+}
+
+model MenuItem {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  category    String      // e.g., "Starters", "Mains", "Drinks"
+  imageUrl    String?
+  isAvailable Boolean     @default(true)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  tableId       String
+  table         Table       @relation(fields: [tableId], references: [id])
+  status        String      @default("PENDING") // PENDING, PREPARING, READY, COMPLETED
+  total         Float
+  paymentStatus String      @default("UNPAID") // UNPAID, PAID
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
