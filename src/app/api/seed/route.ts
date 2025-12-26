@@ -90,8 +90,12 @@ export async function GET() {
         }
 
         return NextResponse.json({ message: "Database seeded successfully!" })
-    } catch (error) {
+    } catch (error: any) {
         console.error("Seeding error:", error)
-        return NextResponse.json({ error: "Failed to seed database" }, { status: 500 })
+        return NextResponse.json({
+            error: "Failed to seed database",
+            details: error.message,
+            stack: error.stack
+        }, { status: 500 })
     }
 }
